@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Admin Dashboard with Analytics</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="bg-gray-50 font-sans text-gray-900 antialiased">
+
+    <div class="flex h-screen overflow-hidden">
+        
+        <aside class="w-64 bg-gray-900 text-white flex flex-col justify-between hidden md:flex">
+            <div>
+                <div class="p-6 flex items-center gap-3 border-b border-gray-800">
+                    <i data-lucide="layout-dashboard" class="text-indigo-400 w-6 h-6"></i>
+                    <span class="text-xl font-bold tracking-wider">CoreAdmin</span>
+                </div>
+                <nav class="p-4 space-y-1">
+                    <button id="nav-users" class="w-full flex items-center gap-3 px-4 py-3 bg-indigo-600 text-white rounded-lg font-medium transition cursor-pointer">
+                        <i data-lucide="users" class="w-5 h-5"></i> Users Management
+                    </button>
+                    <button id="nav-analytics" class="w-full flex items-center gap-3 px-4 py-3 text-gray-400 hover:bg-gray-800 hover:text-white rounded-lg font-medium transition cursor-pointer">
+                        <i data-lucide="bar-chart-3" class="w-5 h-5"></i> Analytics
+                    </button>
+                    <a href="#" class="flex items-center gap-3 px-4 py-3 text-gray-400 hover:bg-gray-800 hover:text-white rounded-lg font-medium transition">
+                        <i data-lucide="settings" class="w-5 h-5"></i> Settings
+                    </a>
+                </nav>
+            </div>
+            <div class="p-4 border-t border-gray-800 flex items-center gap-3">
+                <div class="w-9 h-9 rounded-full bg-indigo-500 flex items-center justify-center text-sm font-bold">AR</div>
+                <div>
+                    <p class="text-sm font-medium">Aryan chaudhary</p>
+                    <p class="text-xs text-gray-500">Admin Account</p>
+                </div>
+            </div>
+        </aside>
+
+        <main class="flex-1 flex flex-col overflow-y-auto">
+            
+            <header class="bg-white border-b border-gray-200 h-16 flex items-center justify-between px-6 lg:px-8 shrink-0">
+                <h1 id="page-title" class="text-xl font-bold text-gray-800">Users Directory</h1>
+                <div class="flex items-center gap-4">
+                    <button class="relative p-2 text-gray-400 hover:text-gray-600 transition">
+                        <i data-lucide="bell" class="w-6 h-6"></i>
+                        <span class="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+                    </button>
+                </div>
+            </header>
+
+            <div class="p-6 lg:p-8 space-y-6 max-w-7xl w-full mx-auto">
+                
+                <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-xs flex items-center justify-between">
+                        <div>
+                            <p class="text-sm font-medium text-gray-500 uppercase tracking-wider">Total Users</p>
+                            <h3 id="total-users-kpi" class="text-3xl font-bold mt-1 text-gray-900">0</h3>
+                        </div>
+                        <div class="p-3 bg-indigo-50 text-indigo-600 rounded-xl">
+                            <i data-lucide="users" class="w-6 h-6"></i>
+                        </div>
+                    </div>
+                    <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-xs flex items-center justify-between">
+                        <div>
+                            <p class="text-sm font-medium text-gray-500 uppercase tracking-wider">Active Members</p>
+                            <h3 id="active-users-kpi" class="text-3xl font-bold mt-1 text-green-600">0</h3>
+                        </div>
+                        <div class="p-3 bg-green-50 text-green-600 rounded-xl">
+                            <i data-lucide="shield-check" class="w-6 h-6"></i>
+                        </div>
+                    </div>
+                    <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-xs flex items-center justify-between">
+                        <div>
+                            <p class="text-sm font-medium text-gray-500 uppercase tracking-wider">Pending Approvals</p>
+                            <h3 id="pending-users-kpi" class="text-3xl font-bold mt-1 text-amber-600">0</h3>
+                        </div>
+                        <div class="p-3 bg-amber-50 text-amber-600 rounded-xl">
+                            <i data-lucide="clock" class="w-6 h-6"></i>
+                        </div>
+                    </div>
+                </section>
+
+                <div id="view-users" class="space-y-6">
+                    <section class="bg-white p-4 rounded-xl border border-gray-200 shadow-xs space-y-4">
+                        <div class="flex flex-col md:flex-row gap-4 items-center justify-between">
+                            <div class="relative w-full md:w-80">
+                                <span class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-gray-400">
+                                    <i data-lucide="search" class="w-5 h-5"></i>
+                                </span>
+                                <input type="text" id="search-input" placeholder="Search by name, email, or role..." 
+                                    class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                            </div>
+
+                            <div class="flex flex-wrap items-center gap-3 w-full md:w-auto justify-end">
+                                <select id="role-filter" class="w-full sm:w-auto px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                    <option value="all">All Roles</option>
+                                    <option value="Admin">Admin</option>
+                                    <option value="Editor">Editor</option>
+                                    <option value="Viewer">Viewer</option>
+                                </select>
+
+                                <select id="status-filter" class="w-full sm:w-auto px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                    <option value="all">All Statuses</option>
+                                    <option value="Active">Active</option>
+                                    <option value="Pending">Pending</option>
+                                    <option value="Suspended">Suspended</option>
+                                </select>
+
+                                <button id="clear-filters" class="w-full sm:w-auto px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition cursor-pointer">
+                                    Clear
+                                </button>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section class="bg-white rounded-xl border border-gray-200 shadow-xs overflow-hidden">
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left border-collapse">
+                                <thead>
+                                    <tr class="bg-gray-50 border-b border-gray-200 text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                                        <th class="p-4 cursor-pointer hover:bg-gray-100 select-none transition" onclick="sortData('name')">
+                                            <div class="flex items-center gap-1">User <i data-lucide="chevrons-up-down" class="w-4 h-4 text-gray-400"></i></div>
+                                        </th>
+                                        <th class="p-4 cursor-pointer hover:bg-gray-100 select-none transition" onclick="sortData('role')">
+                                            <div class="flex items-center gap-1">Role <i data-lucide="chevrons-up-down" class="w-4 h-4 text-gray-400"></i></div>
+                                        </th>
+                                        <th class="p-4 cursor-pointer hover:bg-gray-100 select-none transition" onclick="sortData('status')">
+                                            <div class="flex items-center gap-1">Status <i data-lucide="chevrons-up-down" class="w-4 h-4 text-gray-400"></i></div>
+                                        </th>
+                                        <th class="p-4">Joined Date</th>
+                                        <th class="p-4 text-right">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="table-body" class="divide-y divide-gray-100 text-sm">
+                                    </tbody>
+                            </table>
+                        </div>
+
+                        <div class="p-4 border-t border-gray-200 flex flex-col sm:flex-row items-center justify-between gap-4 bg-gray-50">
+                            <p id="pagination-info" class="text-sm text-gray-600">
+                                Showing <span class="font-medium">0</span> to <span class="font-medium">0</span> of <span class="font-medium">0</span> results
+                            </p>
+                            <div class="flex items-center gap-2">
+                                <button id="prev-page" class="px-3 py-1.5 border border-gray-300 rounded-md bg-white text-gray-600 hover:bg-gray-50 disabled:opacity-50 disabled:pointer-events-none transition text-xs font-medium cursor-pointer">
+                                    Previous
+                                </button>
+                                <button id="next-page" class="px-3 py-1.5 border border-gray-300 rounded-md bg-white text-gray-600 hover:bg-gray-50 disabled:opacity-50 disabled:pointer-events-none transition text-xs font-medium cursor-pointer">
+                                    Next
+                                </button>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+
+                <div id="view-analytics" class="space-y-6 hidden">
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        
+                        <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-xs">
+                            <h3 class="text-base font-bold text-gray-800 mb-4">User Status Distribution</h3>
+                            <div class="relative h-64 flex justify-center items-center">
+                                <canvas id="statusChart"></canvas>
+                            </div>
+                        </div>
+
+                        <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-xs">
+                            <h3 class="text-base font-bold text-gray-800 mb-4">Role Segmentation</h3>
+                            <div class="relative h-64 flex justify-center items-center">
+                                <canvas id="roleChart"></canvas>
+                            </div>
+                        </div>
+                        
+                    </div>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // Mock dataset
+        const mockUsers = [
+            { id: 1, name: 'Alice Vance', email: 'alice@example.com', role: 'Admin', status: 'Active', date: '2023-11-14' },
+            { id: 2, name: 'Bob Sterling', email: 'bob@example.com', role: 'Editor', status: 'Pending', date: '2024-01-10' },
+            { id: 3, name: 'Charly Prince', email: 'charly@example.com', role: 'Viewer', status: 'Active', date: '2023-08-22' },
+            { id: 4, name: 'Dana Scully', email: 'dana@example.com', role: 'Admin', status: 'Suspended', date: '2022-05-19' },
+            { id: 5, name: 'Evan Wright', email: 'evan@example.com', role: 'Viewer', status: 'Active', date: '2024-02-01' },
+            { id: 6, name: 'Fiona Gallagher', email: 'fiona@example.com', role: 'Editor', status: 'Active', date: '2023-12-25' },
+            { id: 7, name: 'George Costanza', email: 'george@example.com', role: 'Viewer', status: 'Pending', date: '2024-03-11' },
+            { id: 8, name: 'Hannah Abbott', email: 'hannah@example.com', role: 'Editor', status: 'Suspended', date: '2023-04-04' }
+        ];
+
+        // State Tracking variables
+        let filteredData = [...mockUsers];
+        let currentPage = 1;
+        const rowsPerPage = 5;
+        let currentSortColumn = '';
+        let isAscending = true;
+        
+        // Chart global instances
+        let statusChartInstance = null;
+        let roleChartInstance = null;
+
+        // DOM elements cache
+        const tableBody = document.getElementById('table-body');
+        const searchInput = document.getElementById('search-input');
+        const roleFilter = document.getElementById('role-filter');
+        const statusFilter = document.getElementById('status-filter');
+        const clearFiltersBtn = document.getElementById('clear-filters');
+        const prevPageBtn = document.getElementById('prev-page');
+        const nextPageBtn = document.getElementById('next-page');
+        const paginationInfo = document.getElementById('pagination-info');
+
+        // Navigation DOM Elements
+        const navUsers = document.getElementById('nav-users');
+        const navAnalytics = document.getElementById('nav-analytics');
+        const viewUsers = document.getElementById('view-users');
+        const viewAnalytics = document.getElementById('view-analytics');
+        const pageTitle = document.getElementById('page-title');
+
+        // Initial launch sequence
+        document.addEventListener("DOMContentLoaded", () => {
+            lucide.createIcons();
+            updateKPIs();
+            applyFilters();
+            
+            // Event bindings for filtering & pagination
+            searchInput.addEventListener('input', applyFilters);
+            roleFilter.addEventListener('change', applyFilters);
+            statusFilter.addEventListener('change', applyFilters);
+            clearFiltersBtn.addEventListener('click', resetFilters);
+            prevPageBtn.addEventListener('click', () => changePage(-1));
+            nextPageBtn.addEventListener('click', () => changePage(1));
+
+            // Navigation Toggle Triggers
+            navUsers.addEventListener('click', () => switchView('users'));
+            navAnalytics.addEventListener('click', () => switchView('analytics'));
+        });
+
+        // Toggle UI states
+        function switchView(view) {
+            if (view === 'users') {
+                viewUsers.classList.remove('hidden');
+                viewAnalytics.classList.add('hidden');
+                pageTitle.textContent = "Users Directory";
+                
+                // Active nav styles
+                navUsers.className = "w-full flex items-center gap-3 px-4 py-3 bg-indigo-600 text-white rounded-lg font-medium transition cursor-pointer";
+                navAnalytics.className = "w-full flex items-center gap-3 px-4 py-3 text-gray-400 hover:bg-gray-800 hover:text-white rounded-lg font-medium transition cursor-pointer";
+            } else {
+                viewUsers.classList.add('hidden');
+                viewAnalytics.classList.remove('hidden');
+                pageTitle.textContent = "Analytics Dashboard";
+                
+                // Active nav styles
+                navAnalytics.className = "w-full flex items-center gap-3 px-4 py-3 bg-indigo-600 text-white rounded-lg font-medium transition cursor-pointer";
+                navUsers.className = "w-full flex items-center gap-3 px-4 py-3 text-gray-400 hover:bg-gray-800 hover:text-white rounded-lg font-medium transition cursor-pointer";
+                
+                // Render chart visualizations
+                renderCharts();
+            }
+        }
+
+        // Compute Metric Totals
+        function updateKPIs() {
+            document.getElementById('total-users-kpi').textContent = mockUsers.length;
+            document.getElementById('active-users-kpi').textContent = mockUsers.filter(u => u.status === 'Active').length;
+            document.getElementById('pending-users-kpi').textContent = mockUsers.filter(u => u.status === 'Pending').length;
+        }
+
+        // Filter Logic Frame
+        function applyFilters() {
+            const searchQuery = searchInput.value.toLowerCase().trim();
+            const selectedRole = roleFilter.value;
+            const selectedStatus = statusFilter.value;
+
+            filteredData = mockUsers.filter(user => {
+                const matchesSearch = user.name.toLowerCase().includes(searchQuery) || 
+                                      user.email.toLowerCase().includes(searchQuery) ||
+                                      user.role.toLowerCase().includes(searchQuery);
+                const matchesRole = selectedRole === 'all' || user.role === selectedRole;
+                const matchesStatus = selectedStatus === 'all' || user.status === selectedStatus;
+
+                return matchesSearch && matchesRole && matchesStatus;
+            });
+
+            currentPage = 1;
+            renderTable();
+
+            // Real-time chart refreshes if user is looking at the analytics layout
+            if(!viewAnalytics.classList.contains('hidden')) {
+                renderCharts();
+            }
+        }
+
+        function resetFilters() {
+            searchInput.value = '';
+            roleFilter.value = 'all';
+            statusFilter.value = 'all';
+            applyFilters();
+        }
+
+        // Sorting Logic
+        function sortData(column) {
+            if (currentSortColumn === column) {
+                isAscending = !isAscending;
+            } else {
+                currentSortColumn = column;
+                isAscending = true;
+            }
+
+            filteredData.sort((a, b) => {
+                let valA = a[column].toLowerCase();
+                let valB = b[column].toLowerCase();
+                
+                if (valA < valB) return isAscending ? -1 : 1;
+                if (valA > valB) return isAscending ? 1 : -1;
+                return 0;
+            });
+
+            renderTable();
+        }
+
+        // Pagination mechanics
+        function changePage(direction) {
+            currentPage += direction;
+            renderTable();
+        }
+
+        // DOM Render operations 
+        function renderTable() {
+            tableBody.innerHTML = '';
+            const totalItems = filteredData.length;
+            const totalPages = Math.ceil(totalItems / rowsPerPage) || 1;
+            
+            if (currentPage > totalPages) currentPage = totalPages;
+
+            const startIdx = (currentPage - 1) * rowsPerPage;
+            const endIdx = Math.min(startIdx + rowsPerPage, totalItems);
+            const pageData = filteredData.slice(startIdx, endIdx);
+
+            if (pageData.length === 0) {
+                tableBody.innerHTML = `<tr><td colspan="5" class="p-8 text-center text-gray-500 font-medium">No matching user records discovered.</td></tr>`;
+                updatePaginationControls(0, 0, 0, totalPages);
+                return;
+            }
+
+            pageData.forEach(user => {
+                const statusBadges = {
+                    Active: 'bg-green-50 text-green-700 border-green-200',
+                    Pending: 'bg-amber-50 text-amber-700 border-amber-200',
+                    Suspended: 'bg-red-50 text-red-700 border-red-200'
+                };
+
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-gray-50 transition';
+                tr.innerHTML = `
+                    <td class="p-4">
+                        <div class="font-semibold text-gray-900">${user.name}</div>
+                        <div class="text-xs text-gray-500">${user.email}</div>
+                    </td>
+                    <td class="p-4 text-gray-600 font-medium">${user.role}</td>
+                    <td class="p-4">
+                        <span class="px-2.5 py-1 text-xs font-semibold rounded-full border ${statusBadges[user.status]}">
+                            ${user.status}
+                        </span>
+                    </td>
+                    <td class="p-4 text-gray-500">${user.date}</td>
+                    <td class="p-4 text-right">
+                        <button onclick="deleteUser(${user.id})" class="text-xs font-semibold text-red-600 hover:text-red-900 bg-red-50 hover:bg-red-100 px-2.5 py-1.5 rounded-md transition cursor-pointer">
+                            Delete
+                        </button>
+                    </td>
+                `;
+                tableBody.appendChild(tr);
+            });
+
+            updatePaginationControls(startIdx + 1, endIdx, totalItems, totalPages);
+        }
+
+        function updatePaginationControls(start, end, total, totalPages) {
+            paginationInfo.innerHTML = total === 0 
+                ? `Showing <span class="font-semibold">0</span> results`
+                : `Showing <span class="font-semibold">${start}</span> to <span class="font-semibold">${end}</span> of <span class="font-semibold">${total}</span> records`;
+
+            prevPageBtn.disabled = currentPage === 1;
+            nextPageBtn.disabled = currentPage === totalPages;
+        }
+
+        // Delete profile framework
+        function deleteUser(userId) {
+            if(confirm("Are you sure you want to completely remove this user profile?")) {
+                const index = mockUsers.findIndex(u => u.id === userId);
+                if (index !== -1) {
+                    mockUsers.splice(index, 1);
+                    updateKPIs();
+                    applyFilters();
+                }
+            }
+        }
+
+        // ==========================================
+        // DYNAMIC CHART GENERATION LOGIC (Chart.js)
+        // ==========================================
+        function renderCharts() {
+            // Compile metric counts from the dynamic filtered dataset
+            const statusCounts = { Active: 0, Pending: 0, Suspended: 0 };
+            const roleCounts = { Admin: 0, Editor: 0, Viewer: 0 };
+
+            filteredData.forEach(user => {
+                if (statusCounts[user.status] !== undefined) statusCounts[user.status]++;
+                if (roleCounts[user.role] !== undefined) roleCounts[user.role]++;
+            });
+
+            // 1. Status Chart (Pie/Doughnut)
+            if (statusChartInstance) statusChartInstance.destroy(); // Clear existing canvas context memory
+            const ctxStatus = document.getElementById('statusChart').getContext('2d');
+            statusChartInstance = new Chart(ctxStatus, {
+                type: 'doughnut',
+                data: {
+                    labels: Object.keys(statusCounts),
+                    datasets: [{
+                        data: Object.values(statusCounts),
+                        backgroundColor: ['#22c55e', '#f59e0b', '#ef4444'], // green, amber, red Tailwind values
+                        borderWidth: 2,
+                        borderColor: '#ffffff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom' }
+                    }
+                }
+            });
+
+            // 2. Role Chart (Bar Graph)
+            if (roleChartInstance) roleChartInstance.destroy(); // Clear memory
+            const ctxRole = document.getElementById('roleChart').getContext('2d');
+            roleChartInstance = new Chart(ctxRole, {
+                type: 'bar',
+                data: {
+                    labels: Object.keys(roleCounts),
+                    datasets: [{
+                        label: 'Users per Role Group',
+                        data: Object.values(roleCounts),
+                        backgroundColor: '#6366f1', // Indigo text
+                        borderRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: { stepSize: 1 }
+                        }
+                    }
+                }
+            });
+        }
+    </script>
+</body>
+</html>
